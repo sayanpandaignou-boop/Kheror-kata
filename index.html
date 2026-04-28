@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B0906" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="খেরোর খাতা" />
+  <title>Golpoboliyer Kheror Khata</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:      #0B0906;
+      --surface: #110E0B;
+      --card:    #161210;
+      --border:  #2A2218;
+      --gold:    #C9A84C;
+      --text:    #E8DBC0;
+      --muted:   #6B5E48;
+      --dim:     #3A3028;
+      --accent:  #4A8F7B;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'EB Garamond', serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+      position: relative;
+    }
+
+    /* Grainy Texture Overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    #app {
+      position: relative; z-index: 1; max-width: 900px; margin: 0 auto;
+      padding: 30px 16px env(safe-area-inset-bottom, 80px);
+    }
+
+    /* Header */
+    header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.4em; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--gold); letter-spacing: -0.01em; margin-bottom: 15px; }
+
+    /* Stats */
+    .stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+    .stat-box { text-align: center; }
+    .stat-val { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold); font-weight: 700; }
+    .stat-lbl { font-family: 'Space Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Shelves & Cards */
+    .shelf-title { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3em; margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
+    .shelf-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.2s; position: relative; }
+    .card:hover { border-color: var(--gold); }
+    .card h3 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text); margin-bottom: 10px; }
+    .card-meta { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--dim); display: flex; justify-content: space-between; }
+
+    /* Editor Overlay */
+    #editor {
+      position: fixed; inset: 0; background: var(--bg); z-index: 100; 
+      display: none; flex-direction: column; padding: 20px 16px;
+    }
+    .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+    .editor-title { background: none; border: none; color: var(--gold); font-family: 'Playfair Display', serif; font-size: 24px; outline: none; width: 70%; }
+    
+    textarea {
+      flex: 1; background: none; border: none; color: var(--text); font-family: 'EB Garamond', serif; 
+      font-size: 18px; line-height: 1.8; resize: none; outline: none;
+    }
+
+    /* Buttons */
+    .btn {
+      background: none; border: 1px solid var(--gold); color: var(--gold); 
+      padding: 8px 16px; font-family: 'Space Mono', monospace; font-size: 10px; 
+      text-transform: uppercase; letter-spacing: 0.1em; border-radius: 4px; cursor: pointer;
+    }
+    .btn-fill { background: var(--gold); color: var(--bg); font-weight: 700; }
+
+    .fab {
+      position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px;
+      background: var(--gold); border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; color: var(--bg); font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      cursor: pointer; z-index: 90;
+    }
+
+    /* Animations */
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .slide-up { animation: slideUp 0.3s ease; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="eyebrow">Manuscript Journal · গল্পবলিয়ের খেরোর খাতা</div>
+    <h1 id="journal-name">খেরোর খাতা</h1>
+    <div class="stats">
+      <div class="stat-box"><div class="stat-val" id="stat-projects">0</div><div class="stat-lbl">Projects</div></div>
+      <div class="stat-box"><div class="stat-val" id="stat-words">0</div><div class="stat-lbl">Words</div></div>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+      <button class="btn" onclick="exportData()">Backup</button>
+      <label class="btn">Restore <input type="file" id="importFile" hidden onchange="importData(event)"></label>
+    </div>
+  </header>
+
+  <div id="shelves-container"></div>
+</div>
+
+<div class="fab" onclick="createNewProject()">+</div>
+
+<div id="editor" class="slide-up">
+  <div class="editor-header">
+    <input type="text" id="edit-title" class="editor-title" />
+    <button class="btn" onclick="closeEditor()">Close</button>
+  </div>
+  <textarea id="edit-content" placeholder="Write your heart out..."></textarea>
+  <div class="editor-header" style="border:none; margin:0; padding:10px 0;">
+    <div id="word-count" class="stat-lbl">0 words</div>
+    <div id="save-indicator" class="stat-lbl" style="color:var(--accent)">✓ Saved</div>
+  </div>
+</div>
+
+<script>
+  // --- CONFIG & STATE ---
+  const SHELVES = ["Audiobook Scripts", "Novels", "Video Scripts", "Shorts"];
+  let state = {
+    projects: JSON.parse(localStorage.getItem('kheror_khata_db')) || [],
+    activeId: null
+  };
+
+  // --- CORE LOGIC ---
+  function saveToDisk() {
+    localStorage.setItem('kheror_khata_db', JSON.stringify(state.projects));
+    updateStats();
+  }
+
+  function updateStats() {
+    document.getElementById('stat-projects').innerText = state.projects.length;
+    let totalWords = state.projects.reduce((acc, p) => acc + (p.content ? p.content.split(/\s+/).length : 0), 0);
+    document.getElementById('stat-words').innerText = totalWords;
+  }
+
+  function createNewProject() {
+    const type = prompt("Select Type: 1: Audiobook, 2: Novel, 3: Video, 4: Shorts") || "1";
+    const title = prompt("Enter Title:") || "Untitled Manuscript";
+    const newProj = {
+      id: Date.now(),
+      title: title,
+      type: SHELVES[parseInt(type) - 1] || SHELVES[0],
+      content: "",
+      updatedAt: new Date().toISOString()
+    };
+    state.projects.unshift(newProj);
+    saveToDisk();
+    renderShelves();
+    openEditor(newProj.id);
+  }
+
+  function openEditor(id) {
+    state.activeId = id;
+    const proj = state.projects.find(p => p.id === id);
+    document.getElementById('edit-title').value = proj.title;
+    document.getElementById('edit-content').value = proj.content;
+    document.getElementById('editor').style.display = 'flex';
+    updateWordCount();
+  }
+
+  function closeEditor() {
+    document.getElementById('editor').style.display = 'none';
+    state.activeId = null;
+    renderShelves();
+  }
+
+  function handleInput() {
+    if (!state.activeId) return;
+    const proj = state.projects.find(p => p.id === state.activeId);
+    proj.title = document.getElementById('edit-title').value;
+    proj.content = document.getElementById('edit-content').value;
+    proj.updatedAt = new Date().toISOString();
+    
+    document.getElementById('save-indicator').innerText = "Saving...";
+    updateWordCount();
+    
+    clearTimeout(window.saveTimer);
+    window.saveTimer = setTimeout(() => {
+      saveToDisk();
+      document.getElementById('save-indicator').innerText = "✓ Saved";
+    }, 8000);
+  }
+
+  function updateWordCount() {
+    const text = document.getElementById('edit-content').value.trim();
+    const count = text ? text.split(/\s+/).length : 0;
+    document.getElementById('word-count').innerText = count + " words";
+  }
+
+  // --- RENDER ---
+  function renderShelves() {
+    const container = document.getElementById('shelves-container');
+    container.innerHTML = "";
+    
+    SHELVES.forEach(shelf => {
+      const filtered = state.projects.filter(p => p.type === shelf);
+      if (filtered.length === 0) return;
+
+      const section = document.createElement('div');
+      section.innerHTML = `<div class="shelf-title">${shelf}</div>`;
+      const grid = document.createElement('div');
+      grid.className = "grid";
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "card";
+        card.onclick = () => openEditor(p.id);
+        card.innerHTML = `
+          <h3>${p.title}</h3>
+          <div class="card-meta">
+            <span>${p.content.split(/\s+/).length} Words</span>
+            <span>${new Date(p.updatedAt).toLocaleDateString()}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      section.appendChild(grid);
+      container.appendChild(section);
+    });
+  }
+
+  // --- BACKUP / RESTORE ---
+  function exportData() {
+    const blob = new Blob([JSON.stringify(state.projects)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Kheror_Khata_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+  }
+
+  function importData(e) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      state.projects = JSON.parse(event.target.result);
+      saveToDisk();
+      renderShelves();
+    };
+    reader.readAsText(e.target.files[0]);
+  }
+
+  // --- PWA SETUP ---
+  (function initPWA() {
+    const manifest = {
+      name: "Golpoboliyer Kheror Khata",
+      short_name: "খেরোর খাতা",
+      start_url: "./",
+      display: "standalone",
+      background_color: "#0B0906",
+      theme_color: "#0B0906",
+      icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230B0906'/><text y='50%' x='50%' dominant-baseline='middle' text-anchor='middle' font-size='60' fill='%23C9A84C'>গ</text></svg>", sizes: "512x512", type: "image/svg+xml" }]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    const link = document.createElement('link');
+    link.rel = 'manifest'; link.href = URL.createObjectURL(blob);
+    document.head.appendChild(link);
+
+    if ('serviceWorker' in navigator) {
+      const sw = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`;
+      const swBlob = new Blob([sw], {type:'text/javascript'});
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob));
+    }
+  })();
+
+  // Listeners
+  document.getElementById('edit-title').oninput = handleInput;
+  document.getElementById('edit-content').oninput = handleInput;
+  
+  // Boot
+  renderShelves();
+  updateStats();
+</script>
+</body>
+</html>
+
